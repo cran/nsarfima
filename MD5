@@ -1,0 +1,6 @@
+dce0ffd4f940ae709f1244a6910e56ce *DESCRIPTION
+bf275445a102f1b896b8544f6d277bdf *NAMESPACE
+034032580de4a0d4473f6c1dd22a6931 *R/nsarfima.R
+4e939681479f8095f27e3eecc37f7f6e *man/arfima.sim.Rd
+93f621c78a5e446223013dbb476cc211 *man/mde.arfima.Rd
+b297a481b0e2241383eecba3022d1294 *man/mle.arfima.Rd
