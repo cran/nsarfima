@@ -4,8 +4,18 @@
 \alias{mde.arfima}
 \title{Minimum Distance Estimation of ARFIMA Model}
 \usage{
-mde.arfima(y, p = 1, q = 0, d.range = c(0, 1), start,
-  lag.max = floor(sqrt(length(y))), incl.mean, verbose = FALSE)
+mde.arfima(
+  y,
+  p = 1,
+  q = 0,
+  d.range = c(0, 1),
+  start,
+  lag.max = floor(sqrt(length(y))),
+  incl.mean = TRUE,
+  verbose = FALSE,
+  method = c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"),
+  control = list()
+)
 }
 \arguments{
 \item{y}{Numeric vector of the time series.}
@@ -16,13 +26,17 @@ mde.arfima(y, p = 1, q = 0, d.range = c(0, 1), start,
 
 \item{d.range}{Range of allowable values for fractional differencing parameter. Smallest value must be greater than -1.}
 
-\item{start}{Vector of length 1+p+q containing initial fit values for the fractional differencing parameter, the AR parameters, and the MA parameters. If NULL, automatically selected.}
+\item{start}{Named vector of length 1 + \code{p} + \code{q} containing initial fit values for the fractional differencing parameter, the AR parameters, and the MA parameters (\emph{e.g.} \code{start = c(d=0.4, ar.1=-0.4, ma.1=0.3, ma.2=0.4)}). If missing, automatically selected.}
 
 \item{lag.max}{Maximum lag to use when calculating the residual autocorrelations. For details see Mayoral (2007).}
 
-\item{incl.mean}{Whether or not to include a mean term in the model. If not specified, a mean term is included if it appears that d < 0.5, estimated from Fourier spectrum.}
+\item{incl.mean}{Whether or not to include a mean term in the model. The default value of \code{TRUE} is recommended unless the true mean is known and previously subtracted. Mean is returned with standard error, which may be misleading for \code{d>=0.5}.}
 
 \item{verbose}{Whether to print summary of fit.}
+
+\item{method}{Method for \code{\link[stats]{optim}}, see \code{help(optim)}.}
+
+\item{control}{List of additional arguments for \code{\link[stats]{optim}}, see \code{help(optim)}.}
 }
 \value{
 A list containing:\tabular{ll}{
@@ -34,35 +48,34 @@ A list containing:\tabular{ll}{
 \tab \cr
 \code{fit.obj} \tab \code{\link[stats]{optim}} fit object.\cr
 \tab \cr
-\code{p.val} \tab Ljung-Box p-value for fit.\cr
+\code{p.val} \tab Ljung-Box \emph{p}-value for fit.\cr
 \tab \cr
 \code{residuals} \tab Fit residuals.\cr
 }
 }
 \description{
-Fits an ARFIMA(p,d,q) model to a time series using a minimum distance estimator. For details see Mayoral (2007).
+Fits an ARFIMA(\emph{p},\emph{d},\emph{q}) model to a time series using a minimum distance estimator. For details see Mayoral (2007).
 }
 \note{
-This method makes no assumptions on the distribution of the innovation series, and the innovation variance does not factor into the covariance matrix of parameter estimates. For this reason, it is not included in the results. To estimate, sum squared residuals and divide by \code{length(y)-1}.
+This method makes no assumptions on the distribution of the innovation series, and the innovation variance does not factor into the covariance matrix of parameter estimates. For this reason, it is not included in the results, but can be estimated from the residuals---see Mayoral (2007).
 }
 \examples{
 set.seed(1)
-x <- arfima.sim(500, d=0.3, ar=c(-0.2, 0.4))
-fit <- mde.arfima(x, p=2, incl.mean=FALSE) 
+x <- arfima.sim(1000, d=0.6, ar=c(-0.4))
+fit <- mde.arfima(x, p=1, incl.mean=FALSE, verbose=TRUE) 
 
 
 ## Fit Summary
 ## --------------------
-## Ljung-Box p-val:  0.516 
-##          d    ar.1   ar.2
-## est 0.2192 -0.1526 0.4028
-## err 0.1275  0.1359 0.0980
+## Ljung-Box p-val:  0.276 
+##           d     ar.1
+## est 0.55031 -0.39261
+## err 0.03145  0.03673
 ##
 ## Correlation Matrix for ARFIMA Parameters
-##           d   ar.1   ar.2
-## d    1.0000 0.9535 0.9086
-## ar.1 0.9535 1.0000 0.8986
-## ar.2 0.9086 0.8986 1.0000
+##           d   ar.1
+## d    1.0000 0.6108
+## ar.1 0.6108 1.0000
 }
 \references{
 Mayoral, L. (2007). Minimum distance estimation of stationary and non-stationary ARFIMA processes. \emph{The Econometrics Journal}, \strong{10}, 124-148. doi: \href{https://doi.org/10.1111/j.1368-423X.2007.00202.x}{10.1111/j.1368-423X.2007.00202.x}

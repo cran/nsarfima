@@ -4,8 +4,17 @@
 \alias{mle.arfima}
 \title{Pseudo-Maximum Likelihood Estimation of ARFIMA Model}
 \usage{
-mle.arfima(y, p = 1, q = 0, d.range = c(0, 1), start, incl.mean,
-  verbose = FALSE)
+mle.arfima(
+  y,
+  p = 1,
+  q = 0,
+  d.range = c(0, 1),
+  start,
+  incl.mean = TRUE,
+  verbose = FALSE,
+  method = c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"),
+  control = list()
+)
 }
 \arguments{
 \item{y}{Numeric vector of the time series.}
@@ -16,11 +25,15 @@ mle.arfima(y, p = 1, q = 0, d.range = c(0, 1), start, incl.mean,
 
 \item{d.range}{Range of allowable values for fractional differencing parameter. Smallest value must be greater than -1.}
 
-\item{start}{Vector of length 1+p+q containing initial fit values for the fractional differencing parameter, the AR parameters, and the MA parameters. If NULL, automatically selected.}
+\item{start}{Named vector of length 1 + \code{p} + \code{q} containing initial fit values for the fractional differencing parameter, the AR parameters, and the MA parameters (\emph{e.g.} \code{start = c(d=0.4, ar.1=-0.4, ma.1=0.3, ma.2=0.4)}). If missing, automatically selected.}
 
-\item{incl.mean}{Whether or not to include a mean term in the model. If not specified, a mean term is included if it appears that d < 0.5, estimated from Fourier spectrum.}
+\item{incl.mean}{Whether or not to include a mean term in the model. The default value of \code{TRUE} is recommended unless the true mean is known and previously subtracted. Mean is returned with standard error, which may be misleading for \code{d>=0.5}.}
 
 \item{verbose}{Whether to print summary of fit.}
+
+\item{method}{Method for \code{\link[stats]{optim}}, see \code{help(optim)}.}
+
+\item{control}{List of additional arguments for \code{\link[stats]{optim}}, see \code{help(optim)}.}
 }
 \value{
 A list containing:\tabular{ll}{
@@ -32,32 +45,31 @@ A list containing:\tabular{ll}{
 \tab \cr
 \code{fit.obj} \tab \code{\link[stats]{optim}} fit object.\cr
 \tab \cr
-\code{p.val} \tab Ljung-Box p-value for fit.\cr
+\code{p.val} \tab Ljung-Box \emph{p}-value for fit.\cr
 \tab \cr
 \code{residuals} \tab Fit residuals.\cr
 }
 }
 \description{
-Fits an ARFIMA(p,d,q) model to a time series using a pseudo-maximum likelihood estimator. For details see Beran (1995).
+Fits an ARFIMA(\emph{p},\emph{d},\emph{q}) model to a time series using a pseudo-maximum likelihood estimator. For details see Beran (1995).
 }
 \examples{
 set.seed(1)
-x <- arfima.sim(500, d=0.3, ar=c(-0.2, 0.4))
-fit <- mle.arfima(x, p=2, incl.mean=FALSE) 
+x <- arfima.sim(1000, d=0.6, ar=c(-0.4))
+fit <- mle.arfima(x, p=1, incl.mean=FALSE, verbose=TRUE) 
 
 ## Fit Summary
 ## --------------------
-## Ljung-Box p-val:  0.479 
-##       sig2       d     ar.1    ar.2
-## est 1.11584 0.24940 -0.17430 0.35947
-## err 0.07277 0.06315  0.06788 0.05068
+## Ljung-Box p-val:  0.263 
+##        sig2       d     ar.1
+## est 1.09351 0.53933 -0.37582
+## err 0.05343 0.04442  0.05538
 ##
 ## Correlation Matrix for ARFIMA Parameters
-##           sig2        d      ar.1    ar.2
-## sig2  1.000000  0.03838  0.004255 -0.2169
-## d     0.038382  1.00000 -0.815915 -0.5154
-## ar.1  0.004255 -0.81592  1.000000  0.4433
-## ar.2 -0.216907 -0.51541  0.443322  1.0000
+##         sig2       d    ar.1
+## sig2  1.0000 -0.3349  0.4027
+## d    -0.3349  1.0000 -0.8318
+## ar.1  0.4027 -0.8318  1.0000
 }
 \references{
 Beran, J. (1995). Maximum Likelihood Estimation of the Differencing Parameter for Short and Long Memory Autoregressive Integrated Moving Average Models. \emph{Journal of the Royal Statistical Society. Series B (Methodological)}, \strong{57}, No. 4, 659-672. doi: \href{https://doi.org/10.1111/j.2517-6161.1995.tb02054.x}{10.1111/j.2517-6161.1995.tb02054.x}

@@ -4,8 +4,18 @@
 \alias{arfima.sim}
 \title{Simulate ARFIMA Process}
 \usage{
-arfima.sim(n, d = 0, ar = numeric(), ma = numeric(), mu = 0,
-  sig2 = 1, stat.int = FALSE, n.burn, innov, exact.innov = TRUE)
+arfima.sim(
+  n,
+  d = 0,
+  ar = numeric(),
+  ma = numeric(),
+  mu = 0,
+  sig2 = 1,
+  stat.int = FALSE,
+  n.burn,
+  innov,
+  exact.innov = TRUE
+)
 }
 \arguments{
 \item{n}{Desired series length.}
@@ -14,19 +24,19 @@ arfima.sim(n, d = 0, ar = numeric(), ma = numeric(), mu = 0,
 
 \item{ar}{Vector of autoregressive parameters.}
 
-\item{ma}{Vector of moving average parameters, following the same convention as \code{\link[stats]{arima}}.}
+\item{ma}{Vector of moving average parameters, following the same sign convention as \code{\link[stats]{arima}}.}
 
 \item{mu}{Mean of process. By default, added after integer integration but before burn-in truncation (see \code{stat.int}).}
 
-\item{sig2}{Innovation variance.}
+\item{sig2}{Innovation variance if innovations not provided.}
 
-\item{stat.int}{Controls integration for non-stationary values of \code{d} (i.e. >=0.5). If \code{TRUE}, \code{d} split into integer part and stationary part, which will result in a trend when \code{d>=0.5} and \code{mu!=0}.}
+\item{stat.int}{Controls integration for non-stationary values of \code{d} (\emph{i.e.} \code{d>=0.5}). If \code{TRUE}, \code{d} split into integer part and stationary part, which will result in a trend when \code{d>=0.5} and \code{mu!=0}.}
 
-\item{n.burn}{Number of burn-in steps. If not given, chosen based off presence of long memory (i.e. d>0).}
+\item{n.burn}{Number of burn-in steps. If not given, chosen based off presence of long memory (\emph{i.e.} \code{d>0}).}
 
-\item{innov}{Series of innovations. Default draws from normal distribution.}
+\item{innov}{Series of innovations. Drawn from normal distribution if not given.}
 
-\item{exact.innov}{Whether to force the exact innovation series to be used. If \code{FALSE}, innovations will be prepended with resampled points as needed to match n + n.burn.}
+\item{exact.innov}{Whether to force the exact innovation series to be used. If \code{FALSE}, innovations will be prepended with resampled points as needed to match \code{n+n.burn}.}
 }
 \value{
 A numeric vector of length n.
@@ -35,28 +45,20 @@ A numeric vector of length n.
 Simulates a series under the given ARFIMA model by applying an MA filter to a series of innovations.
 }
 \details{
-The model is defined by values for the AR and MA parameters (\eqn{\phi} and \eqn{\theta}, respectively), along with the fractional differencing parameter \emph{d}. When \eqn{d>=0.5}, then the integer part is taken as \eqn{m=floor(d+0.5)}, and the remainder (between -0.5 and 0.5) stored as \emph{d}. For \eqn{m=0}, the model is:
-\deqn{(1 - \sum_{i=1}^p \phi_i B^i)(1 - B)^d (y_t - \mu)=(1 + \sum_{i=1}^q \theta_i B^i) \epsilon_t}
-where \emph{B} is the backshift operator: \eqn{B y_t = y_{t-1}}, and \eqn{\epsilon_t} is the innovation series. When \eqn{m > 0}, the model is defined by:
+The model is defined by values for the AR and MA parameters (\eqn{\phi} and \eqn{\theta}, respectively), along with the fractional differencing parameter \emph{d}. When \eqn{d\geq 0.5}, then the integer part is taken as \eqn{m=\lfloor d+0.5\rfloor}, and the remainder (between -0.5 and 0.5) stored as \emph{d}. For \eqn{m=0}, the model is:
+\deqn{\left(1 - \sum_{i=1}^p \phi_i B^i\right)\left(1 - B\right)^d (y_t - \mu)=\left(1 + \sum_{i=1}^q \theta_i B^i\right) \epsilon_t}
+where \emph{B} is the backshift operator (\eqn{B y_t = y_{t-1}}) and \eqn{\epsilon_t} is the innovation series. When \eqn{m > 0}, the model is defined by:
 \deqn{y_t = (1 - B)^{-m}x_t}
-\deqn{(1 - \sum_{i=1}^p \phi_i B^i)(1 - B)^d (x_t - \mu)=(1 + \sum_{i=1}^q \theta_i B^i) \epsilon_t}
-When \code{stat.int=FALSE}, the differencing filter applied to the innovations is not split into parts, and the series model follows the first equation regardless of the value of \emph{d}. This means that \eqn{\mu} is added to the series after filtering and before any truncation. When \code{stat.int=TRUE}, \eqn{x_t - \mu} is generated from filtered residuals, \eqn{\mu} is added, and the result is cumulatively summed \emph{m} times. For non-zero mean and \eqn{m>0}, this will yield a polynomial trend in the resulting data.
+\deqn{\left(1 - \sum_{i=1}^p \phi_i B^i\right)(1 - B)^d (x_t - \mu)=\left(1 + \sum_{i=1}^q \theta_i B^i\right) \epsilon_t}
+When \code{stat.int = FALSE}, the differencing filter applied to the innovations is not split into parts, and the series model follows the first equation regardless of the value of \emph{d}. This means that \eqn{\mu} is added to the series after filtering and before any truncation. When \code{stat.int = TRUE}, \eqn{x_t - \mu} is generated from filtered residuals, \eqn{\mu} is added, and the result is cumulatively summed \emph{m} times. For non-zero mean and \eqn{m>0}, this will yield a polynomial trend in the resulting data.
 
 Note that the burn-in length may affect the distribution of the sample mean, variance, and autocovariance. Consider this when generating ensembles of simulated data
 }
 \examples{
-## Generate ARFIMA(2,d,0) series with Gaussian innovations
-x <- arfima.sim(500, d=0.3, ar=c(-0.2, 0.4)) 
+## Generate ARFIMA(1,d,0) series with Gaussian innovations
+x <- arfima.sim(1000, d=0.6, ar=c(-0.4)) 
 
-## Generate ARFIMA(2,d,0) series with mean-zero lognormal innovations.
-innov.series <- rlnorm(500)
-innov.series0 <- innov.series - mean(innov.series)
-y1 <- arfima.sim(500, d=0.3, ar=c(-0.2, 0.4), innov=innov.series0, exact.innov=TRUE)
-
-## Generate ARFIMA(2,d,0) series with lognormal innovations.
-## Non-zero innovation mean will affect series behavior, adding nonlinearity.
-y2 <- arfima.sim(500, d=0.3, ar=c(-0.2, 0.4), innov=innov.series, exact.innov=TRUE) 
-
-## Generate non-stationary ARFIMA(2,d,1) series with Gaussian innovatons.
-z <- arfima.sim(500, d=0.7, ar=c(-0.2, 0.4), ma=c(0.5)) 
+## Generate ARFIMA(1,d,0) series with uniform innovations.
+innov.series <- runif(1000, -1, 1)
+x <- arfima.sim(1000, d=0.6, ar=c(-0.4), innov=innov.series, exact.innov=TRUE)
 }
